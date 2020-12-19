@@ -233,8 +233,8 @@ IOReturn VoodooI2CAtmelMXTTouchDriver::ProcessMessage(UInt8 *message) {
         return 0;
     
     if (report_id == T6_reportid) {
-        uint8_t status = message[1];
-        uint32_t crc = message[2] | (message[3] << 8) | (message[4] << 16);
+        // uint8_t status = message[1];
+        // uint32_t crc = message[2] | (message[3] << 8) | (message[4] << 16);
     }
     else if (report_id >= T9_reportid_min && report_id <= T9_reportid_max) {
         uint8_t flags = message[1];
@@ -270,7 +270,7 @@ IOReturn VoodooI2CAtmelMXTTouchDriver::ProcessMessage(UInt8 *message) {
         transducer->secondary_id = report_id;
     }
     else if (report_id >= T100_reportid_min && report_id <= T100_reportid_max) {
-        int reportid = report_id - T100_reportid_min - 2;
+        // int reportid = report_id - T100_reportid_min - 2;
         
         uint8_t flags = message[1];
         
