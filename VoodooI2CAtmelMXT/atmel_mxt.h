@@ -206,9 +206,12 @@ typedef union mxt_message mxt_message_t;
 /* T100 Multiple Touch Touchscreen */
 #define MXT_T100_CTRL        0
 #define MXT_T100_CFG1        1
-#define MXT_T100_TCHAUX        3
-#define MXT_T100_XRANGE        13
-#define MXT_T100_YRANGE        24
+#define MXT_T100_SCRAUX      2
+#define MXT_T100_TCHAUX      3
+#define MXT_T100_XSIZE       9
+#define MXT_T100_YSIZE       20
+#define MXT_T100_XRANGE      13
+#define MXT_T100_YRANGE      24
 
 #define MXT_T100_CFG_SWITCHXY    BIT(5)
 

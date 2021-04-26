@@ -19,6 +19,49 @@
 #define __le16 UInt16
 #define __le32 UInt32
 
+#define MXT_MESSAGE_INVALID (0xFF)
+
+static uint8_t t9_buttons[] {
+    0, // Reserve
+    0, // Reserve
+    0, // Reserve
+    0, // Reserve
+    0, // Reserve
+    1  // Left
+};
+
+static uint8_t t100_buttons[] {
+    0, // Reserve
+    0, // Reserve
+    0, // Reserve
+    1  // Left
+};
+
+typedef struct MxtDevice MxtDevice;
+struct MxtDevice {
+    mxt_id_info info;
+    uint8_t multitouch;
+    uint8_t num_touchids;
+    uint8_t max_reportid;
+    uint16_t range_x;
+    uint16_t range_y;
+    
+    /* Cached parameters from object table */
+    uint16_t t5_address;
+    uint8_t t5_msg_size;
+    uint8_t t6_reportid;
+    uint16_t t6_address;
+    uint16_t t7_address;
+    uint8_t t9_reportid_min;
+    uint8_t t9_reportid_max;
+    uint8_t t19_reportid;
+    uint8_t t19_key_nums;
+    uint8_t *t19_key_map;
+    uint16_t t44_address;
+    uint8_t t100_reportid_min;
+    uint8_t t100_reportid_max;
+};
+
 class VoodooI2CAtmelMXTTouchDriver : public IOService {
     OSDeclareDefaultStructors(VoodooI2CAtmelMXTTouchDriver);
     
@@ -64,13 +107,16 @@ private:
     mxt_object    *msgprocobj;
     mxt_object    *cmdprocobj;
     
-    mxt_id_info info;
+    struct MxtDevice mxt_device;
+    // mxt_id_info info;
     
-    UInt16 max_report_x;
+    /*UInt16 max_report_x;
     UInt16 max_report_y;
+    UInt16 max_size_x;
+    UInt16 max_size_y;*/
     
-    uint8_t num_touchids;
-    uint8_t multitouch;
+    // uint8_t num_touchids;
+    // uint8_t multitouch;
     
     t7_config t7_cfg;
     
@@ -79,7 +125,7 @@ private:
     uint8_t t100_aux_vect;
     
     /* Cached parameters from object table */
-    uint16_t T5_address;
+    /*uint16_t T5_address;
     uint8_t T5_msg_size;
     uint8_t T6_reportid;
     uint16_t T6_address;
@@ -89,13 +135,11 @@ private:
     uint8_t T19_reportid;
     uint16_t T44_address;
     uint8_t T100_reportid_min;
-    uint8_t T100_reportid_max;
+    uint8_t T100_reportid_max;*/
     
-    uint8_t max_reportid;
-    
+    // uint8_t max_reportid;
     uint8_t last_message_count;
-    
-    UInt8 Tipswitch[MXT_MAX_FINGERS];
+    bool tip_ids[MXT_MAX_FINGERS];
     
     IOCommandGate* command_gate;
     IOInterruptEventSource* interrupt_source;
@@ -147,12 +191,18 @@ private:
     IOReturn mxt_set_t7_power_cfg(UInt8 sleep);
     IOReturn mxt_read_t9_resolution();
     IOReturn mxt_read_t100_config();
-    
-    IOReturn ProcessMessagesUntilInvalid();
-    IOReturn ProcessMessage(UInt8 *message);
-    int ReadAndProcessMessages(UInt8 count);
-    IOReturn DeviceReadT44();
-    IOReturn DeviceRead();
+
+    int mxt_process_get_usable_tip_id();
+    void mxt_process_message_init();
+    void mxt_precess_message_report(uint8_t count, AbsoluteTime timestamp);
+    IOReturn mxt_process_t9_message(mxt_message *message, AbsoluteTime timestamp);
+    IOReturn mxt_process_t100_message(mxt_message *message, AbsoluteTime timestamp);
+    IOReturn mxt_process_t19_message(mxt_message *message, AbsoluteTime timestamp);
+    IOReturn mxt_process_message_until_invalid(AbsoluteTime timestamp);
+    IOReturn mxt_process_message(mxt_message *message, AbsoluteTime timestamp);
+    int mxt_read_and_process_messages(uint8_t count, AbsoluteTime timestamp);
+    IOReturn mxt_device_read_t44();
+    IOReturn mxt_device_read();
 };
 
 #endif /* VoodooI2CAtmelMXTTouchDriver_hpp */
