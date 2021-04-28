@@ -192,7 +192,6 @@ private:
     IOReturn mxt_read_t9_resolution();
     IOReturn mxt_read_t100_config();
 
-    int mxt_process_get_usable_tip_id();
     void mxt_process_message_init();
     void mxt_precess_message_report(uint8_t count, AbsoluteTime timestamp);
     IOReturn mxt_process_t9_message(mxt_message *message, AbsoluteTime timestamp);

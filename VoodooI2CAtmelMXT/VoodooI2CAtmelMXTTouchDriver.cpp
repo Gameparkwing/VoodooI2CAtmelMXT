@@ -244,22 +244,9 @@ void VoodooI2CAtmelMXTTouchDriver::interrupt_occurred(OSObject* owner, IOInterru
     }
 }
 
-int VoodooI2CAtmelMXTTouchDriver::mxt_process_get_usable_tip_id() {
-    int tip_id = 0;
-    for (int i = 0; i < MXT_MAX_FINGERS; i ++) {
-        if (!tip_ids[i]) {
-            tip_id = i;
-            tip_ids[i] = true;
-            break;
-        }
-    }
-    
-    return tip_id;
-}
-
 void VoodooI2CAtmelMXTTouchDriver::mxt_process_message_init() {
     /*int tip_id = mxt_process_get_usable_tip_id();
-    
+
     AbsoluteTime timestamp;
     clock_get_uptime(&timestamp);
     
@@ -280,9 +267,9 @@ void VoodooI2CAtmelMXTTouchDriver::mxt_precess_message_report(uint8_t count, Abs
     if (!mt_interface) {
         return;
     }
-    
+
     VoodooI2CMultitouchEvent event;
-    event.contact_count = count;
+    event.contact_count = MXT_MAX_FINGERS;
     event.transducers = transducers;
 #if MXT_DEBUG_FLAG
     VoodooI2CDigitiserTransducer* transducer = OSDynamicCast(VoodooI2CDigitiserTransducer,  transducers->getObject(0));
@@ -294,10 +281,13 @@ void VoodooI2CAtmelMXTTouchDriver::mxt_precess_message_report(uint8_t count, Abs
 #endif
     // Send the event into the multitouch interface.
     mt_interface->handleInterruptReport(event, timestamp);
-    
-    // tip_ids recovery.
-    for (int i = 0; i < count; i ++) {
-        tip_ids[i] = 0;
+
+    // Vaild flags recovery.
+    for (int i = 0; i < MXT_MAX_FINGERS; i ++) {
+        VoodooI2CDigitiserTransducer* transducer = OSDynamicCast(VoodooI2CDigitiserTransducer,  transducers->getObject(i));
+        if (transducer != NULL) {
+            transducer->is_valid = false;
+        }
     }
 }
 
@@ -340,14 +330,7 @@ IOReturn VoodooI2CAtmelMXTTouchDriver::mxt_process_t9_message(mxt_message *messa
 }
 
 IOReturn VoodooI2CAtmelMXTTouchDriver::mxt_process_t100_message(mxt_message *message, AbsoluteTime timestamp) {
-#if 0 /* This id was caused bug on ATML. */
-    uint8_t id = message[0] - (T100_reportid_min + 2);  /* first two report IDs reserved */
-    if (id < 0) {
-        return kIOReturnInvalid;
-    }
-#endif
-    
-    int tip_id = mxt_process_get_usable_tip_id();
+    int tip_id = message->any.reportid - (mxt_device.t100_reportid_min + 2);
     VoodooI2CDigitiserTransducer* transducer = OSDynamicCast(VoodooI2CDigitiserTransducer,  transducers->getObject(tip_id));
     if (transducer == NULL) {
         return kIOReturnError;
@@ -427,7 +410,7 @@ IOReturn VoodooI2CAtmelMXTTouchDriver::mxt_process_t100_message(mxt_message *mes
 }
 
 IOReturn VoodooI2CAtmelMXTTouchDriver::mxt_process_t19_message(mxt_message *message, AbsoluteTime timestamp) {
-    int tip_id = mxt_process_get_usable_tip_id();
+    int tip_id = message->any.reportid - mxt_device.t19_reportid;
     VoodooI2CDigitiserTransducer* transducer = OSDynamicCast(VoodooI2CDigitiserTransducer,  transducers->getObject(tip_id));
     if (transducer == NULL) {
         return kIOReturnError;
